@@ -23,7 +23,28 @@
   .account-btn:active, a.account-btn:active { background: rgba(255,255,255,0.35); }
   .account-num { font-size: 12px; font-weight: 400; opacity: 0.85; margin-left: 2px; }
 
-  .toast {
+  /* 좌대 선택 오버레이 */
+  .overlay {
+    position: fixed; inset: 0; background: #5bb8f5;
+    z-index: 200; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; padding: 2rem;
+  }
+  .overlay h2 { color: #fff; font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+  .overlay p { color: rgba(255,255,255,0.8); font-size: 14px; margin-bottom: 2rem; }
+  .zoodae-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 14px; width: 100%; max-width: 340px;
+  }
+  .zoodae-btn {
+    background: #fff; border: none; border-radius: 14px;
+    padding: 1.5rem 1rem; font-size: 16px; font-weight: 700;
+    color: #1a1a2e; cursor: pointer; text-align: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .zoodae-btn:active { transform: scale(0.96); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+  .zoodae-btn span { display: block; font-size: 22px; margin-bottom: 6px; }
+  .overlay.hidden { display: none; }
     position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
     background: rgba(0,0,0,0.75); color: #fff; font-size: 13px;
     padding: 10px 20px; border-radius: 20px; opacity: 0;
@@ -106,19 +127,38 @@
 </head>
 <body>
 
+<!-- 좌대 선택 오버레이 -->
+<div class="overlay" id="overlay">
+  <h2>어디 좌대에 계신가요?</h2>
+  <p>좌대를 선택하면 메뉴가 표시됩니다</p>
+  <div class="zoodae-grid">
+    <button class="zoodae-btn" onclick="selectZoodae('만석좌대')">
+      <span>🎣</span>만석좌대
+    </button>
+    <button class="zoodae-btn" onclick="selectZoodae('대호좌대')">
+      <span>🎣</span>대호좌대
+    </button>
+    <button class="zoodae-btn" onclick="selectZoodae('백년좌대')">
+      <span>🎣</span>백년좌대
+    </button>
+    <button class="zoodae-btn" onclick="selectZoodae('우리좌대')">
+      <span>🎣</span>우리좌대
+    </button>
+  </div>
+</div>
+
 <div class="hero">
   <h1>전체 메뉴</h1>
   <p>삼길포항 드론배달 식사 메뉴판</p>
+  <div style="display:flex; align-items:center; gap:10px; margin-top:6px;">
+    <p id="zoodaeLabel" style="color:#fff; font-size:18px; font-weight:700;"></p>
+    <button onclick="changeZoodae()" id="zoodaeChangeBtn" style="display:none; background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.5); border-radius:6px; color:#fff; font-size:12px; padding:4px 10px; cursor:pointer;">좌대 변경</button>
+  </div>
   <p class="hero-note">
     배송비 1,000원 · 주류 배송 불가<br>
     메뉴판 외 품목 배달 주문은 전화 문의
   </p>
   <div style="display:flex; gap:8px; flex-wrap:wrap;">
-    <button class="account-btn" onclick="copyAccount()">
-      <span>📋</span>
-      계좌번호 복사
-      <span class="account-num">카카오 3333-07-6836288 윤광선</span>
-    </button>
     <a class="account-btn" href="tel:010-5467-9316">
       <span>📞</span>
       전화
@@ -128,6 +168,11 @@
       <span>💬</span>
       카카오톡 주문
     </a>
+    <button class="account-btn" onclick="copyAccount()">
+      <span>📋</span>
+      계좌번호 복사
+      <span class="account-num">카카오 3333-07-6836288 윤광선</span>
+    </button>
   </div>
 </div>
 
@@ -137,6 +182,7 @@
   <button class="tab on" onclick="show('cafe',this)">카페</button>
   <button class="tab" onclick="show('daeho',this)">대호반점</button>
   <button class="tab" onclick="show('igane',this)">이가네</button>
+  <button class="tab" onclick="show('bait',this)">낚시 미끼</button>
 </div>
 
 <!-- 카페 -->
@@ -234,6 +280,19 @@
   <div class="item"><div class="item-info"><span class="item-name">불고기 비빔냉면</span></div><div class="item-price">13,000원</div><button class="add-btn" onclick="addItem('불고기 비빔냉면',13000)">+</button></div>
 </div>
 
+<!-- 낚시 미끼 -->
+<div id="bait" class="section">
+  <div class="cat-label">낚시 미끼류</div>
+  <div class="item"><div class="item-info"><span class="item-name">빨간오징어</span></div><div class="item-price">5,000원</div><button class="add-btn" onclick="addItem('빨간오징어',5000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">흰오징어</span></div><div class="item-price">4,000원</div><button class="add-btn" onclick="addItem('흰오징어',4000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">꼴뚜기</span></div><div class="item-price">5,000원</div><button class="add-btn" onclick="addItem('꼴뚜기',5000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">각크릴</span></div><div class="item-price">5,000원</div><button class="add-btn" onclick="addItem('각크릴',5000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">깐새우</span></div><div class="item-price">6,000원</div><button class="add-btn" onclick="addItem('깐새우',6000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">까나리</span></div><div class="item-price">4,000원</div><button class="add-btn" onclick="addItem('까나리',4000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">냉동새우</span></div><div class="item-price">5,000원</div><button class="add-btn" onclick="addItem('냉동새우',5000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">염장지렁이</span></div><div class="item-price">5,000원</div><button class="add-btn" onclick="addItem('염장지렁이',5000)">+</button></div>
+</div>
+
 <!-- 하단 장바구니 바 -->
 <div class="cart-bar" id="cartBar">
   <div class="cart-summary" onclick="toggleCart()">
@@ -247,6 +306,18 @@
 
 <script>
 let cart = {};
+let selectedZoodae = '';
+
+function selectZoodae(name) {
+  selectedZoodae = name;
+  document.getElementById('overlay').classList.add('hidden');
+  document.getElementById('zoodaeLabel').textContent = '📍 ' + name;
+  document.getElementById('zoodaeChangeBtn').style.display = 'inline-block';
+}
+
+function changeZoodae() {
+  document.getElementById('overlay').classList.remove('hidden');
+}
 
 function addItem(name, price) {
   if (cart[name]) {
@@ -315,6 +386,7 @@ function copyCart() {
   const itemTotal = keys.reduce((s,k) => s + cart[k].price * cart[k].qty, 0);
   const total = itemTotal + 1000;
   let text = '📋 주문 내역\n';
+  if (selectedZoodae) text += `📍 ${selectedZoodae}\n`;
   text += '─────────────\n';
   keys.forEach(name => {
     const { price, qty } = cart[name];
