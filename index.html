@@ -376,11 +376,17 @@ function renderCart() {
       </div>`;
   html += `
     <div style="display:flex; gap:8px; margin-top:8px;">
-      <button class="cart-clear" style="flex:1;" onclick="copyCart()">담은메뉴 복사</button>
-      <a class="cart-clear" style="flex:1; text-align:center; text-decoration:none;" href="http://pf.kakao.com/_TUXxhX/chat" target="_blank">카카오톡 주문</a>
+      <button class="cart-clear" style="flex:1;" onclick="copyAndKakao()">📋 복사 후 카카오톡 주문</button>
     </div>
     <button class="cart-clear" style="margin-top:8px;" onclick="clearCart()">전체 비우기</button>`;
   container.innerHTML = html;
+}
+
+function copyAndKakao() {
+  copyCart();
+  setTimeout(() => {
+    window.open('http://pf.kakao.com/_TUXxhX/chat', '_blank');
+  }, 300);
 }
 
 function copyCart() {
