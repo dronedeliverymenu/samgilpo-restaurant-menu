@@ -6,45 +6,102 @@
 <title>전체 메뉴 - 삼길포항 드론배달</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Apple SD Gothic Neo', '맑은 고딕', sans-serif; background: #f5f4f0; color: #1a1a1a; }
+  body { font-family: 'Apple SD Gothic Neo', '맑은 고딕', sans-serif; background: #f5f4f0; color: #1a1a1a; padding-bottom: 80px; }
 
   .hero { background: #5bb8f5; padding: 1.5rem 1.25rem 1.25rem; text-align: left; }
   .hero h1 { color: #fff; font-size: 22px; font-weight: 600; margin-bottom: 4px; }
-  .hero p { color: rgba(255,255,255,0.85); font-size: 13px; margin-bottom: 1rem; }
+  .hero p { color: rgba(255,255,255,0.85); font-size: 13px; margin-bottom: 0.5rem; }
+  .hero-note { color: rgba(255,255,255,0.8); font-size: 12px; margin-top: 4px; line-height: 1.7; margin-bottom: 1rem; }
 
   .account-btn, a.account-btn {
     display: inline-flex; align-items: center; gap: 8px;
     background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.5);
     border-radius: 8px; padding: 8px 14px; cursor: pointer;
     color: #fff; font-size: 13px; font-weight: 600;
-    transition: background 0.15s;
+    transition: background 0.15s; text-decoration: none;
   }
-  .account-btn, a.account-btn { text-decoration: none; }
+  .account-btn:active, a.account-btn:active { background: rgba(255,255,255,0.35); }
   .account-num { font-size: 12px; font-weight: 400; opacity: 0.85; margin-left: 2px; }
-  .copy-icon { font-size: 14px; }
 
   .toast {
-    position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
+    position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
     background: rgba(0,0,0,0.75); color: #fff; font-size: 13px;
     padding: 10px 20px; border-radius: 20px; opacity: 0;
     transition: opacity 0.3s; pointer-events: none; white-space: nowrap; z-index: 999;
   }
   .toast.show { opacity: 1; }
 
-  .tabs { display: flex; background: #fff; position: sticky; top: 0; z-index: 10; border-bottom: 1px solid #e0e0e0; }
-  .tab { flex: 1; padding: 13px 4px; font-size: 13px; font-weight: 600; color: #999; border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; }
+  .tabs { display: flex; flex-wrap: wrap; background: #fff; position: sticky; top: 0; z-index: 10; border-bottom: 1px solid #e0e0e0; }
+  .tab { flex: 1 1 auto; min-width: 80px; padding: 13px 4px; font-size: 13px; font-weight: 600; color: #999; border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; }
   .tab.on { color: #1a1a2e; border-bottom-color: #1a1a2e; }
 
   .section { display: none; padding: 0 1rem 2rem; }
   .section.on { display: block; }
   .cat-label { font-size: 11px; font-weight: 700; color: #999; letter-spacing: 0.1em; padding: 1.5rem 0 0.5rem; border-bottom: 1px solid #ddd; }
-  .item { display: flex; justify-content: space-between; align-items: baseline; padding: 11px 0; border-bottom: 1px solid #efefef; }
-  .item:last-child { border-bottom: none; }
-  .item-name { font-size: 15px; color: #1a1a1a; flex: 1; }
+
+  .item {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 0;
+    border-bottom: 1px solid #efefef;
+  }
+  .item:last-of-type { border-bottom: none; }
+  .item-info { flex: 1; }
+  .item-name { font-size: 15px; color: #1a1a1a; }
   .item-sub { font-size: 12px; color: #aaa; display: block; margin-top: 2px; }
-  .item-price { font-size: 14px; font-weight: 600; color: #1a1a2e; white-space: nowrap; margin-left: 12px; text-align: right; }
+  .item-price { font-size: 14px; font-weight: 600; color: #1a1a2e; text-align: center; white-space: nowrap; }
   .price-row { display: block; font-size: 12px; color: #555; font-weight: 500; }
-  .note { font-size: 12px; color: #aaa; padding: 14px 0 4px; text-align: center; }
+  .add-btn {
+    background: #1a1a2e; color: #fff; border: none; border-radius: 6px;
+    width: 32px; height: 32px; font-size: 20px; line-height: 1;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .add-btn:active { background: #2e2e5e; }
+
+  .note { font-size: 12px; color: #aaa; padding: 14px 0 4px; text-align: left; }
+
+  /* 하단 장바구니 바 */
+  .cart-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: #1a1a2e; color: #fff;
+    padding: 0 1rem;
+    z-index: 100;
+    max-height: 60px;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+  .cart-bar.open { max-height: 60vh; overflow-y: auto; }
+  .cart-summary {
+    display: flex; justify-content: space-between; align-items: center;
+    height: 60px; cursor: pointer;
+  }
+  .cart-summary-left { font-size: 14px; font-weight: 600; }
+  .cart-summary-right { font-size: 15px; font-weight: 700; }
+  .cart-items { padding-bottom: 1rem; }
+  .cart-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1);
+    font-size: 13px;
+  }
+  .cart-item-name { flex: 1; }
+  .cart-item-qty {
+    display: flex; align-items: center; gap: 8px; margin: 0 12px;
+  }
+  .qty-btn {
+    background: rgba(255,255,255,0.15); border: none; color: #fff;
+    width: 24px; height: 24px; border-radius: 4px; font-size: 16px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .cart-item-price { font-weight: 600; white-space: nowrap; }
+  .cart-empty { font-size: 13px; color: rgba(255,255,255,0.5); padding: 12px 0; text-align: center; }
+  .cart-clear {
+    width: 100%; margin-top: 8px; padding: 10px;
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+    color: #fff; border-radius: 8px; font-size: 13px; cursor: pointer;
+  }
 </style>
 </head>
 <body>
@@ -52,23 +109,23 @@
 <div class="hero">
   <h1>전체 메뉴</h1>
   <p>삼길포항 드론배달 식사 메뉴판</p>
-  <p style="color:rgba(255,255,255,0.8);font-size:12px;margin-top:6px;line-height:1.7;">
+  <p class="hero-note">
     배송비 1,000원 · 주류 배송 불가<br>
     메뉴판 외 품목 배달 주문은 전화 문의
   </p>
   <div style="display:flex; gap:8px; flex-wrap:wrap;">
     <button class="account-btn" onclick="copyAccount()">
-      <span class="copy-icon">📋</span>
+      <span>📋</span>
       계좌번호 복사
       <span class="account-num">카카오 3333-07-6836288 윤광선</span>
     </button>
     <a class="account-btn" href="tel:010-5467-9316">
-      <span class="copy-icon">📞</span>
+      <span>📞</span>
       전화
       <span class="account-num">010-5467-9316</span>
     </a>
     <a class="account-btn" href="http://pf.kakao.com/_TUXxhX/chat" target="_blank">
-      <span class="copy-icon">💬</span>
+      <span>💬</span>
       카카오톡 주문
     </a>
   </div>
@@ -85,95 +142,218 @@
 <!-- 카페 -->
 <div id="cafe" class="section on">
   <div class="cat-label">커피</div>
-  <div class="item"><div><span class="item-name">아메리카노</span><span class="item-sub">H / I</span></div><div class="item-price">5,000원</div></div>
-  <div class="item"><div><span class="item-name">카페라떼</span><span class="item-sub">H / I</span></div><div class="item-price">5,500원</div></div>
-  <div class="item"><div><span class="item-name">바닐라라떼</span><span class="item-sub">H / I</span></div><div class="item-price">6,000원</div></div>
-  <div class="item"><div><span class="item-name">카페모카</span><span class="item-sub">H / I</span></div><div class="item-price">6,000원</div></div>
-  <div class="item"><div><span class="item-name">마끼아또</span><span class="item-sub">H / I</span></div><div class="item-price">6,000원</div></div>
-  <div class="item"><div><span class="item-name">1L 아메리카노</span></div><div class="item-price">8,000원</div></div>
-  <div class="item"><div><span class="item-name">다방커피</span></div><div class="item-price">4,000원</div></div>
+  <div class="item"><div class="item-info"><span class="item-name">아메리카노</span><span class="item-sub">H / I</span></div><div class="item-price">5,000원</div><button class="add-btn" onclick="addItem('아메리카노',5000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">카페라떼</span><span class="item-sub">H / I</span></div><div class="item-price">5,500원</div><button class="add-btn" onclick="addItem('카페라떼',5500)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">바닐라라떼</span><span class="item-sub">H / I</span></div><div class="item-price">6,000원</div><button class="add-btn" onclick="addItem('바닐라라떼',6000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">카페모카</span><span class="item-sub">H / I</span></div><div class="item-price">6,000원</div><button class="add-btn" onclick="addItem('카페모카',6000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">마끼아또</span><span class="item-sub">H / I</span></div><div class="item-price">6,000원</div><button class="add-btn" onclick="addItem('마끼아또',6000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">1L 아메리카노</span></div><div class="item-price">8,000원</div><button class="add-btn" onclick="addItem('1L 아메리카노',8000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">다방커피</span></div><div class="item-price">4,000원</div><button class="add-btn" onclick="addItem('다방커피',4000)">+</button></div>
 
   <div class="cat-label">에이드 · 스무디</div>
-  <div class="item"><div><span class="item-name">에이드</span><span class="item-sub">레몬 / 자몽 / 청포도</span></div><div class="item-price">6,000원</div></div>
-  <div class="item"><div><span class="item-name">요거트 스무디</span><span class="item-sub">플레인 / 딸기 / 망고 / 블루베리</span></div><div class="item-price">6,000원</div></div>
+  <div class="item"><div class="item-info"><span class="item-name">에이드</span><span class="item-sub">레몬 / 자몽 / 청포도</span></div><div class="item-price">6,000원</div><button class="add-btn" onclick="addItem('에이드',6000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">요거트 스무디</span><span class="item-sub">플레인 / 딸기 / 망고 / 블루베리</span></div><div class="item-price">6,000원</div><button class="add-btn" onclick="addItem('요거트 스무디',6000)">+</button></div>
 
   <div class="cat-label">차</div>
-  <div class="item"><div><span class="item-name">차</span><span class="item-sub">레몬 / 자몽</span></div><div class="item-price">4,500원</div></div>
-  <div class="item"><div><span class="item-name">차</span><span class="item-sub">캐모마일 / 히비스커스 / 루이보스 / 얼그레이 / 유자 / 생강</span></div><div class="item-price">6,000원</div></div>
-  <div class="item"><div><span class="item-name">라떼</span><span class="item-sub">초코 / 쑥 / 밤</span></div><div class="item-price">6,000원</div></div>
-  <div class="item"><div><span class="item-name">복숭아 아이스티</span></div><div class="item-price">4,000원</div></div>
+  <div class="item"><div class="item-info"><span class="item-name">차</span><span class="item-sub">레몬 / 자몽</span></div><div class="item-price">4,500원</div><button class="add-btn" onclick="addItem('차(레몬/자몽)',4500)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">차</span><span class="item-sub">캐모마일 / 히비스커스 / 루이보스 / 얼그레이 / 유자 / 생강</span></div><div class="item-price">6,000원</div><button class="add-btn" onclick="addItem('차(캐모마일 외)',6000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">라떼</span><span class="item-sub">초코 / 쑥 / 밤</span></div><div class="item-price">6,000원</div><button class="add-btn" onclick="addItem('라떼',6000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">복숭아 아이스티</span></div><div class="item-price">4,000원</div><button class="add-btn" onclick="addItem('복숭아 아이스티',4000)">+</button></div>
 </div>
 
 <!-- 대호반점 -->
 <div id="daeho" class="section">
   <div class="cat-label">면류</div>
-  <div class="item"><div><span class="item-name">짜장</span></div><div class="item-price">7,000원</div></div>
-  <div class="item"><div><span class="item-name">간짜장</span></div><div class="item-price">9,000원</div></div>
-  <div class="item"><div><span class="item-name">고추짜장</span></div><div class="item-price">10,000원</div></div>
-  <div class="item"><div><span class="item-name">삼선짜장</span></div><div class="item-price">10,000원</div></div>
-  <div class="item"><div><span class="item-name">짬뽕</span></div><div class="item-price">9,000원</div></div>
-  <div class="item"><div><span class="item-name">굴짬뽕</span></div><div class="item-price">12,000원</div></div>
-  <div class="item"><div><span class="item-name">매운짬뽕</span></div><div class="item-price">9,000원</div></div>
-  <div class="item"><div><span class="item-name">해물짬뽕</span></div><div class="item-price">12,000원</div></div>
-  <div class="item"><div><span class="item-name">백짬뽕</span></div><div class="item-price">12,000원</div></div>
-  <div class="item"><div><span class="item-name">우동</span></div><div class="item-price">9,000원</div></div>
-  <div class="item"><div><span class="item-name">삼선우동</span></div><div class="item-price">12,000원</div></div>
-  <div class="item"><div><span class="item-name">울면</span></div><div class="item-price">10,000원</div></div>
+  <div class="item"><div class="item-info"><span class="item-name">짜장</span></div><div class="item-price">7,000원</div><button class="add-btn" onclick="addItem('짜장',7000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">간짜장</span></div><div class="item-price">9,000원</div><button class="add-btn" onclick="addItem('간짜장',9000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">고추짜장</span></div><div class="item-price">10,000원</div><button class="add-btn" onclick="addItem('고추짜장',10000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">삼선짜장</span></div><div class="item-price">10,000원</div><button class="add-btn" onclick="addItem('삼선짜장',10000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">짬뽕</span></div><div class="item-price">9,000원</div><button class="add-btn" onclick="addItem('짬뽕',9000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">굴짬뽕</span></div><div class="item-price">12,000원</div><button class="add-btn" onclick="addItem('굴짬뽕',12000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">매운짬뽕</span></div><div class="item-price">9,000원</div><button class="add-btn" onclick="addItem('매운짬뽕',9000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">해물짬뽕</span></div><div class="item-price">12,000원</div><button class="add-btn" onclick="addItem('해물짬뽕',12000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">백짬뽕</span></div><div class="item-price">12,000원</div><button class="add-btn" onclick="addItem('백짬뽕',12000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">우동</span></div><div class="item-price">9,000원</div><button class="add-btn" onclick="addItem('우동',9000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">삼선우동</span></div><div class="item-price">12,000원</div><button class="add-btn" onclick="addItem('삼선우동',12000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">울면</span></div><div class="item-price">10,000원</div><button class="add-btn" onclick="addItem('울면',10000)">+</button></div>
 
   <div class="cat-label">밥류</div>
-  <div class="item"><div><span class="item-name">짜장밥</span></div><div class="item-price">9,000원</div></div>
-  <div class="item"><div><span class="item-name">짬뽕밥</span></div><div class="item-price">10,000원</div></div>
-  <div class="item"><div><span class="item-name">굴탕밥</span></div><div class="item-price">12,000원</div></div>
-  <div class="item"><div><span class="item-name">해물짬뽕밥</span></div><div class="item-price">12,000원</div></div>
-  <div class="item"><div><span class="item-name">양송이덮밥</span></div><div class="item-price">10,000원</div></div>
-  <div class="item"><div><span class="item-name">대호특밥</span></div><div class="item-price">10,000원</div></div>
-  <div class="item"><div><span class="item-name">고추잡채밥</span></div><div class="item-price">12,000원</div></div>
-  <div class="item"><div><span class="item-name">잡탕밥</span></div><div class="item-price">15,000원</div></div>
-  <div class="item"><div><span class="item-name">유산슬밥</span></div><div class="item-price">15,000원</div></div>
-  <div class="item"><div><span class="item-name">육개장</span></div><div class="item-price">9,000원</div></div>
-  <div class="item"><div><span class="item-name">갈비탕</span></div><div class="item-price">9,000원</div></div>
+  <div class="item"><div class="item-info"><span class="item-name">짜장밥</span></div><div class="item-price">9,000원</div><button class="add-btn" onclick="addItem('짜장밥',9000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">짬뽕밥</span></div><div class="item-price">10,000원</div><button class="add-btn" onclick="addItem('짬뽕밥',10000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">굴탕밥</span></div><div class="item-price">12,000원</div><button class="add-btn" onclick="addItem('굴탕밥',12000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">해물짬뽕밥</span></div><div class="item-price">12,000원</div><button class="add-btn" onclick="addItem('해물짬뽕밥',12000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">양송이덮밥</span></div><div class="item-price">10,000원</div><button class="add-btn" onclick="addItem('양송이덮밥',10000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">대호특밥</span></div><div class="item-price">10,000원</div><button class="add-btn" onclick="addItem('대호특밥',10000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">고추잡채밥</span></div><div class="item-price">12,000원</div><button class="add-btn" onclick="addItem('고추잡채밥',12000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">잡탕밥</span></div><div class="item-price">15,000원</div><button class="add-btn" onclick="addItem('잡탕밥',15000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">유산슬밥</span></div><div class="item-price">15,000원</div><button class="add-btn" onclick="addItem('유산슬밥',15000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">육개장</span></div><div class="item-price">9,000원</div><button class="add-btn" onclick="addItem('육개장',9000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">갈비탕</span></div><div class="item-price">9,000원</div><button class="add-btn" onclick="addItem('갈비탕',9000)">+</button></div>
 
   <div class="cat-label">볶음밥</div>
-  <div class="item"><div><span class="item-name">볶음밥</span></div><div class="item-price">9,000원</div></div>
-  <div class="item"><div><span class="item-name">새우볶음밥</span></div><div class="item-price">10,000원</div></div>
-  <div class="item"><div><span class="item-name">삼선볶음밥</span></div><div class="item-price">12,000원</div></div>
-  <div class="item"><div><span class="item-name">오므라이스</span></div><div class="item-price">11,000원</div></div>
-  <div class="item"><div><span class="item-name">잡채밥</span></div><div class="item-price">10,000원</div></div>
-  <div class="item"><div><span class="item-name">마파두부밥</span></div><div class="item-price">10,000원</div></div>
-  <div class="item"><div><span class="item-name">오징어덮밥</span></div><div class="item-price">10,000원</div></div>
-  <div class="item"><div><span class="item-name">제육덮밥</span></div><div class="item-price">10,000원</div></div>
+  <div class="item"><div class="item-info"><span class="item-name">볶음밥</span></div><div class="item-price">9,000원</div><button class="add-btn" onclick="addItem('볶음밥',9000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">새우볶음밥</span></div><div class="item-price">10,000원</div><button class="add-btn" onclick="addItem('새우볶음밥',10000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">삼선볶음밥</span></div><div class="item-price">12,000원</div><button class="add-btn" onclick="addItem('삼선볶음밥',12000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">오므라이스</span></div><div class="item-price">11,000원</div><button class="add-btn" onclick="addItem('오므라이스',11000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">잡채밥</span></div><div class="item-price">10,000원</div><button class="add-btn" onclick="addItem('잡채밥',10000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">마파두부밥</span></div><div class="item-price">10,000원</div><button class="add-btn" onclick="addItem('마파두부밥',10000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">오징어덮밥</span></div><div class="item-price">10,000원</div><button class="add-btn" onclick="addItem('오징어덮밥',10000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">제육덮밥</span></div><div class="item-price">10,000원</div><button class="add-btn" onclick="addItem('제육덮밥',10000)">+</button></div>
 
   <div class="cat-label">탕수육 · 요리</div>
-  <div class="item"><div><span class="item-name">탕수육</span><span class="item-sub">일반</span></div><div class="item-price"><span class="price-row">小 20,000원</span><span class="price-row">中 25,000원</span><span class="price-row">大 30,000원</span></div></div>
-  <div class="item"><div><span class="item-name">탕수육</span><span class="item-sub">칠리 / 사천</span></div><div class="item-price"><span class="price-row">小 25,000원</span><span class="price-row">中 30,000원</span><span class="price-row">大 35,000원</span></div></div>
-  <div class="item"><div><span class="item-name">깐풍기</span></div><div class="item-price">30,000원</div></div>
-  <div class="item"><div><span class="item-name">라조기</span></div><div class="item-price">30,000원</div></div>
-  <div class="item"><div><span class="item-name">깐풍육</span></div><div class="item-price">30,000원</div></div>
-  <div class="item"><div><span class="item-name">라조육</span></div><div class="item-price">30,000원</div></div>
-  <div class="item"><div><span class="item-name">깐쇼새우</span></div><div class="item-price">35,000원</div></div>
-  <div class="item"><div><span class="item-name">깐풍새우</span></div><div class="item-price">35,000원</div></div>
-  <div class="item"><div><span class="item-name">양장피</span></div><div class="item-price">35,000원</div></div>
-  <div class="item"><div><span class="item-name">팔보채</span></div><div class="item-price">35,000원</div></div>
-  <div class="item"><div><span class="item-name">고추잡채</span></div><div class="item-price">35,000원</div></div>
-  <div class="item"><div><span class="item-name">유산슬</span></div><div class="item-price">45,000원</div></div>
-  <div class="item"><div><span class="item-name">해물누룽지탕</span></div><div class="item-price">45,000원</div></div>
+  <div class="item"><div class="item-info"><span class="item-name">탕수육(일반) 小</span></div><div class="item-price">20,000원</div><button class="add-btn" onclick="addItem('탕수육(일반) 小',20000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">탕수육(일반) 中</span></div><div class="item-price">25,000원</div><button class="add-btn" onclick="addItem('탕수육(일반) 中',25000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">탕수육(일반) 大</span></div><div class="item-price">30,000원</div><button class="add-btn" onclick="addItem('탕수육(일반) 大',30000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">탕수육(칠리/사천) 小</span></div><div class="item-price">25,000원</div><button class="add-btn" onclick="addItem('탕수육(칠리/사천) 小',25000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">탕수육(칠리/사천) 中</span></div><div class="item-price">30,000원</div><button class="add-btn" onclick="addItem('탕수육(칠리/사천) 中',30000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">탕수육(칠리/사천) 大</span></div><div class="item-price">35,000원</div><button class="add-btn" onclick="addItem('탕수육(칠리/사천) 大',35000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">깐풍기</span></div><div class="item-price">30,000원</div><button class="add-btn" onclick="addItem('깐풍기',30000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">라조기</span></div><div class="item-price">30,000원</div><button class="add-btn" onclick="addItem('라조기',30000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">깐풍육</span></div><div class="item-price">30,000원</div><button class="add-btn" onclick="addItem('깐풍육',30000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">라조육</span></div><div class="item-price">30,000원</div><button class="add-btn" onclick="addItem('라조육',30000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">깐쇼새우</span></div><div class="item-price">35,000원</div><button class="add-btn" onclick="addItem('깐쇼새우',35000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">깐풍새우</span></div><div class="item-price">35,000원</div><button class="add-btn" onclick="addItem('깐풍새우',35000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">양장피</span></div><div class="item-price">35,000원</div><button class="add-btn" onclick="addItem('양장피',35000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">팔보채</span></div><div class="item-price">35,000원</div><button class="add-btn" onclick="addItem('팔보채',35000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">고추잡채</span></div><div class="item-price">35,000원</div><button class="add-btn" onclick="addItem('고추잡채',35000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">유산슬</span></div><div class="item-price">45,000원</div><button class="add-btn" onclick="addItem('유산슬',45000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">해물누룽지탕</span></div><div class="item-price">45,000원</div><button class="add-btn" onclick="addItem('해물누룽지탕',45000)">+</button></div>
 
   <div class="cat-label">사이드</div>
-  <div class="item"><div><span class="item-name">술국</span></div><div class="item-price">15,000원</div></div>
-  <div class="item"><div><span class="item-name">군만두</span></div><div class="item-price">6,000원</div></div>
-  <div class="item"><div><span class="item-name">물만두</span></div><div class="item-price">6,000원</div></div>
+  <div class="item"><div class="item-info"><span class="item-name">술국</span></div><div class="item-price">15,000원</div><button class="add-btn" onclick="addItem('술국',15000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">군만두</span></div><div class="item-price">6,000원</div><button class="add-btn" onclick="addItem('군만두',6000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">물만두</span></div><div class="item-price">6,000원</div><button class="add-btn" onclick="addItem('물만두',6000)">+</button></div>
   <p class="note">※ 곱빼기 변경 시 2,000원 추가</p>
 </div>
 
 <!-- 이가네 -->
 <div id="igane" class="section">
   <div class="cat-label">이가네 마포숯불갈비</div>
-  <div class="item"><div><span class="item-name">이가네 갈비탕</span></div><div class="item-price">15,000원</div></div>
-  <div class="item"><div><span class="item-name">불고기 물냉면</span></div><div class="item-price">13,000원</div></div>
-  <div class="item"><div><span class="item-name">불고기 비빔냉면</span></div><div class="item-price">13,000원</div></div>
+  <div class="item"><div class="item-info"><span class="item-name">이가네 갈비탕</span></div><div class="item-price">15,000원</div><button class="add-btn" onclick="addItem('이가네 갈비탕',15000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">불고기 물냉면</span></div><div class="item-price">13,000원</div><button class="add-btn" onclick="addItem('불고기 물냉면',13000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">불고기 비빔냉면</span></div><div class="item-price">13,000원</div><button class="add-btn" onclick="addItem('불고기 비빔냉면',13000)">+</button></div>
+</div>
+
+<!-- 하단 장바구니 바 -->
+<div class="cart-bar" id="cartBar">
+  <div class="cart-summary" onclick="toggleCart()">
+    <span class="cart-summary-left" id="cartCount">🛒 담은 메뉴 0개</span>
+    <span class="cart-summary-right" id="cartTotal">0원 ▲</span>
+  </div>
+  <div class="cart-items" id="cartItems">
+    <div class="cart-empty" id="cartEmpty">담은 메뉴가 없습니다</div>
+  </div>
 </div>
 
 <script>
+let cart = {};
+
+function addItem(name, price) {
+  if (cart[name]) {
+    cart[name].qty += 1;
+  } else {
+    cart[name] = { price, qty: 1 };
+  }
+  renderCart();
+}
+
+function changeQty(name, delta) {
+  if (!cart[name]) return;
+  cart[name].qty += delta;
+  if (cart[name].qty <= 0) delete cart[name];
+  renderCart();
+}
+
+function renderCart() {
+  const keys = Object.keys(cart);
+  const totalQty = keys.reduce((s, k) => s + cart[k].qty, 0);
+  const itemTotal = keys.reduce((s, k) => s + cart[k].price * cart[k].qty, 0);
+  const totalPrice = totalQty > 0 ? itemTotal + 1000 : 0;
+
+  document.getElementById('cartCount').textContent = `🛒 담은 메뉴 ${totalQty}개`;
+  document.getElementById('cartTotal').textContent = totalPrice.toLocaleString() + '원 ' + (document.getElementById('cartBar').classList.contains('open') ? '▼' : '▲');
+
+  const container = document.getElementById('cartItems');
+  const empty = document.getElementById('cartEmpty');
+
+  if (keys.length === 0) {
+    container.innerHTML = '<div class="cart-empty" id="cartEmpty">담은 메뉴가 없습니다</div>';
+    return;
+  }
+
+  let html = '';
+  keys.forEach(name => {
+    const { price, qty } = cart[name];
+    html += `
+      <div class="cart-item">
+        <span class="cart-item-name">${name}</span>
+        <div class="cart-item-qty">
+          <button class="qty-btn" onclick="changeQty('${name}',-1)">−</button>
+          <span>${qty}</span>
+          <button class="qty-btn" onclick="changeQty('${name}',1)">+</button>
+        </div>
+        <span class="cart-item-price">${(price*qty).toLocaleString()}원</span>
+      </div>`;
+  });
+  html += `<div class="cart-item" style="opacity:0.6;">
+        <span class="cart-item-name">배송비</span>
+        <div class="cart-item-qty"></div>
+        <span class="cart-item-price">1,000원</span>
+      </div>`;
+  html += `
+    <div style="display:flex; gap:8px; margin-top:8px;">
+      <button class="cart-clear" style="flex:1;" onclick="copyCart()">담은메뉴 복사</button>
+      <a class="cart-clear" style="flex:1; text-align:center; text-decoration:none;" href="http://pf.kakao.com/_TUXxhX/chat" target="_blank">카카오톡 주문</a>
+    </div>
+    <button class="cart-clear" style="margin-top:8px;" onclick="clearCart()">전체 비우기</button>`;
+  container.innerHTML = html;
+}
+
+function copyCart() {
+  const keys = Object.keys(cart);
+  if (keys.length === 0) return;
+  const itemTotal = keys.reduce((s,k) => s + cart[k].price * cart[k].qty, 0);
+  const total = itemTotal + 1000;
+  let text = '📋 주문 내역\n';
+  text += '─────────────\n';
+  keys.forEach(name => {
+    const { price, qty } = cart[name];
+    text += `${name} x${qty}  ${(price*qty).toLocaleString()}원\n`;
+  });
+  text += '─────────────\n';
+  text += `배송비  1,000원\n`;
+  text += `합계  ${total.toLocaleString()}원`;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      const toast = document.getElementById('toast');
+      toast.textContent = '주문 내역이 복사되었습니다';
+      toast.classList.add('show');
+      setTimeout(() => { toast.classList.remove('show'); toast.textContent = '계좌번호가 복사되었습니다'; }, 2000);
+    });
+  } else {
+    const el = document.createElement('textarea');
+    el.value = text;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+  }
+}
+
+function clearCart() {
+  cart = {};
+  renderCart();
+}
+
+function toggleCart() {
+  const bar = document.getElementById('cartBar');
+  bar.classList.toggle('open');
+  const keys2 = Object.keys(cart);
+  const itemTotal2 = keys2.reduce((s,k)=>s+cart[k].price*cart[k].qty,0);
+  const total = keys2.length > 0 ? itemTotal2 + 1000 : 0;
+  document.getElementById('cartTotal').textContent = total.toLocaleString() + '원 ' + (bar.classList.contains('open') ? '▼' : '▲');
+}
+
 function show(id, el) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('on'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
