@@ -6,9 +6,22 @@
 <meta name="color-scheme" content="light">
 <title>전체 메뉴 - 삼길포항 드론배달</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Apple SD Gothic Neo', '맑은 고딕', sans-serif; background: #f5f4f0; color: #1a1a1a; padding-bottom: 80px; color-scheme: light; }
-  :root { color-scheme: light; }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-text-size-adjust: 100%; }
+  html { background: #f5f4f0 !important; }
+  body { font-family: 'Apple SD Gothic Neo', '맑은 고딕', sans-serif; background: #f5f4f0 !important; color: #1a1a1a !important; padding-bottom: 80px; color-scheme: light only; }
+  :root { color-scheme: light only; background: #f5f4f0 !important; }
+  @media (prefers-color-scheme: dark) {
+    html, body { background: #f5f4f0 !important; color: #1a1a1a !important; }
+    .tabs { background: #fff !important; }
+    .tab { background: #fff !important; color: #999 !important; }
+    .tab.on { color: #1a1a2e !important; }
+    .section { background: #f5f4f0 !important; }
+    .item-name { color: #1a1a1a !important; }
+    .item-price { color: #1a1a2e !important; }
+    .item-sub { color: #aaa !important; }
+    .cat-label { color: #999 !important; background: #f5f4f0 !important; }
+    .note { color: #aaa !important; }
+  }
 
   .hero { background: #5bb8f5; padding: 1.5rem 1.25rem 1.25rem; text-align: left; }
   .hero h1 { color: #fff; font-size: 22px; font-weight: 600; margin-bottom: 4px; }
