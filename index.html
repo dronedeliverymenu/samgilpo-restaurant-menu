@@ -437,12 +437,14 @@
 let cart = {};
 let selectedZoodae = '';
 let pendingItem = null;
-let mixWarned = false; // 혼합 경고 최초 1회 여부
+let knownStores = new Set(); // 현재 담긴 가게 목록 추적
 
 const cafeMenuNames = ['아메리카노','카페라떼','바닐라라떼','카페모카','마끼아또','1L 아메리카노','다방커피','에이드(커피바라)','요거트 스무디','차(레몬/자몽)','라떼','복숭아 아이스티','캐모마일','히비스커스','루이보스','얼그레이'];
 const iriMenuNames = ['아메리카노(이리)','카페라떼(이리)','바닐라라떼(이리)','유자차','생강차','에이드(카페이리)'];
 const foodMenuNames = ['짜장','간짜장','고추짜장','삼선짜장','짬뽕','굴짬뽕','매운짬뽕','해물짬뽕','백짬뽕','우동','삼선우동','울면','짜장밥','짬뽕밥','굴탕밥','해물짬뽕밥','양송이덮밥','대호특밥','고추잡채밥','잡탕밥','유산슬밥','육개장','갈비탕','볶음밥','새우볶음밥','삼선볶음밥','오므라이스','잡채밥','마파두부밥','오징어덮밥','제육덮밥','탕수육','깐풍기','라조기','깐풍육','라조육','깐쇼새우','깐풍새우','양장피','팔보채','고추잡채','유산슬','해물누룽지탕','술국','군만두','물만두'];
 const iganeMenuNames = ['이가네 갈비탕','불고기 물냉면','불고기 비빔냉면'];
+
+const baitMenuNames = ['빨간오징어','흰오징어','꼴뚜기','각크릴','깐새우','까나리','냉동새우','염장지렁이'];
 
 function getItemStore(name) {
   const base = name.replace(/ 🔴| 🔵/g, '');
@@ -450,6 +452,7 @@ function getItemStore(name) {
   if (cafeMenuNames.some(m => base.startsWith(m))) return 'bara';
   if (iganeMenuNames.some(m => base.startsWith(m))) return 'igane';
   if (foodMenuNames.some(m => base.startsWith(m))) return 'daeho';
+  if (baitMenuNames.some(m => base.startsWith(m))) return 'bait';
   return 'other';
 }
 
@@ -457,27 +460,34 @@ function getItemType(name) {
   const store = getItemStore(name);
   if (store === 'bara' || store === 'iri') return 'cafe';
   if (store === 'daeho' || store === 'igane') return 'food';
+  if (store === 'bait') return 'bait';
   return 'other';
 }
 
 function checkMixWarning(newItemName) {
-  if (mixWarned) return;
   const newStore = getItemStore(newItemName);
   if (newStore === 'other') return;
-  const keys = Object.keys(cart);
-  const hasDifferentStore = keys.some(k => getItemStore(k) !== newStore && getItemStore(k) !== 'other');
-  if (hasDifferentStore) {
-    mixWarned = true;
-    const newType = getItemType(newItemName);
-    const existingTypes = keys.map(k => getItemType(k)).filter(t => t !== 'other');
-    const hasDifferentType = existingTypes.some(t => t !== newType);
-    if (hasDifferentType) {
-      document.getElementById('mixModalMsg').textContent = '카페와 식사류를 함께 주문하시면 조리 완료되는 대로 따로따로 배송되며, 배송비도 각각 1,000원씩 부과됩니다.';
-    } else {
-      document.getElementById('mixModalMsg').textContent = '여러 가게 음식을 주문하시면 조리 완료되는 대로 따로 배송되며, 배송비도 각각 1,000원씩 부과됩니다.';
-    }
-    document.getElementById('mixModal').classList.add('show');
+  if (knownStores.has(newStore)) return; // 이미 있는 가게면 패스
+  if (knownStores.size === 0) {
+    knownStores.add(newStore);
+    return; // 첫 번째 가게는 경고 없음
   }
+  // 새 가게 추가 시 경고
+  knownStores.add(newStore);
+  const newType = getItemType(newItemName);
+  const existingTypes = [...knownStores].filter(s => s !== newStore).map(s => {
+    if (s === 'bara' || s === 'iri') return 'cafe';
+    if (s === 'daeho' || s === 'igane') return 'food';
+    if (s === 'bait') return 'bait';
+    return 'other';
+  }).filter(t => t !== 'other');
+  const hasDifferentType = existingTypes.some(t => t !== newType);
+  if (hasDifferentType) {
+    document.getElementById('mixModalMsg').textContent = '서로 다른 종류의 메뉴를 함께 주문하시면 조리 완료되는 대로 따로따로 배송되며, 배송비도 각각 1,000원씩 부과됩니다.';
+  } else {
+    document.getElementById('mixModalMsg').textContent = '여러 가게 음식을 주문하시면 조리 완료되는 대로 따로 배송되며, 배송비도 각각 1,000원씩 부과됩니다.';
+  }
+  document.getElementById('mixModal').classList.add('show');
 }
 
 function closeMixModal() {
@@ -677,7 +687,7 @@ function copyCart() {
 
 function clearCart() {
   cart = {};
-  mixWarned = false;
+  knownStores = new Set();
   renderCart();
 }
 
