@@ -52,7 +52,7 @@
   }
   .zoodae-btn {
     background: #fff; border: none; border-radius: 14px;
-    padding: 1.5rem 1rem; font-size: 16px; font-weight: 700;
+    padding: 1.75rem 1rem; font-size: 20px; font-weight: 700;
     color: #1a1a2e; cursor: pointer; text-align: center;
     box-shadow: 0 4px 16px rgba(0,0,0,0.12);
     transition: transform 0.1s, box-shadow 0.1s;
@@ -70,9 +70,13 @@
   }
   .toast.show { opacity: 1; visibility: visible; }
 
-  .tabs { display: flex; flex-wrap: wrap; background: #fff; position: sticky; top: 0; z-index: 10; border-bottom: 1px solid #e0e0e0; }
-  .tab { flex: 1 1 auto; min-width: 80px; padding: 13px 4px; font-size: 13px; font-weight: 600; color: #999; border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; }
-  .tab.on { color: #1a1a2e; border-bottom-color: #1a1a2e; }
+  .tabs-main { display: flex; background: #1a1a2e; }
+  .tabs-main .tab { color: rgba(255,255,255,0.6); background: none; border-bottom: 3px solid transparent; padding: 13px 4px; }
+  .tabs-main .tab.on { color: #fff; border-bottom-color: #5bb8f5; }
+  .tabs-sub { display: none; flex-wrap: wrap; background: #f0f0f0; border-bottom: 1px solid #e0e0e0; }
+  .tabs-sub.on { display: flex; }
+  .tabs-sub .tab { color: #999; background: none; border-bottom: 2px solid transparent; padding: 10px 4px; font-size: 13px; }
+  .tabs-sub .tab.on { color: #1a1a2e; border-bottom-color: #1a1a2e; }
 
   .section { display: none; padding: 0 1rem 2rem; }
   .section.on { display: block; }
@@ -99,8 +103,29 @@
     flex-shrink: 0;
   }
   .add-btn:active { background: #e05520; }
+  .note { font-size: 12px; color: #aaa; padding: 14px 0 4px; text-align: left; }
+  .tab { flex: 1 1 auto; min-width: 70px; font-weight: 600; border: none; cursor: pointer; text-align: center; }
+  .tabs-wrap { position: sticky; top: 0; z-index: 10; }
 
-  /* 온도 선택 모달 */
+  /* 대량주문 경고 모달 */
+  .warn-modal-bg {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    z-index: 400; display: flex; align-items: center; justify-content: center;
+    padding: 1.5rem;
+    opacity: 0; visibility: hidden; transition: opacity 0.2s, visibility 0.2s;
+  }
+  .warn-modal-bg.show { opacity: 1; visibility: visible; }
+  .warn-modal {
+    background: #fff; border-radius: 16px;
+    padding: 1.75rem 1.5rem; width: 100%; max-width: 340px;
+    text-align: center;
+  }
+  .warn-modal .warn-icon { font-size: 40px; margin-bottom: 12px; }
+  .warn-modal h3 { font-size: 16px; font-weight: 700; color: #1a1a1a; margin-bottom: 10px; line-height: 1.5; }
+  .warn-modal p { font-size: 13px; color: #555; line-height: 1.7; margin-bottom: 1.5rem; }
+  .warn-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .warn-btn-cancel { padding: 11px; border: 1px solid #ddd; border-radius: 10px; background: #fff; font-size: 14px; color: #999; cursor: pointer; }
+  .warn-btn-ok { padding: 11px; border: none; border-radius: 10px; background: #1a1a2e; font-size: 14px; color: #fff; font-weight: 700; cursor: pointer; }
   .temp-modal-bg {
     position: fixed; inset: 0; background: rgba(0,0,0,0.5);
     z-index: 300; display: flex; align-items: flex-end; justify-content: center;
@@ -171,6 +196,18 @@
 </head>
 <body>
 
+<div class="warn-modal-bg" id="warnModal">
+  <div class="warn-modal">
+    <div class="warn-icon">🚁</div>
+    <h3 id="warnTitle">대량 주문 안내</h3>
+    <p id="warnMsg">대량 주문 시 분할 배송 될 수 있으며,<br>분할 1회당 배송비 1,000원이 추가됩니다.<br><br>그래도 주문하시겠습니까?</p>
+    <div class="warn-btns">
+      <button class="warn-btn-cancel" onclick="closeWarnModal()">취소</button>
+      <button class="warn-btn-ok" onclick="proceedOrder()">주문 진행</button>
+    </div>
+  </div>
+</div>
+
 <div class="temp-modal-bg" id="tempModal" onclick="closeTempModal(event)">
   <div class="temp-modal">
     <h3 id="tempModalName">아메리카노</h3>
@@ -234,12 +271,20 @@
 
 <div class="toast" id="toast">계좌번호가 복사되었습니다</div>
 
-<div class="tabs">
-  <button class="tab on" onclick="show('bara',this)">커피바라</button>
-  <button class="tab" onclick="show('iri',this)">카페이리</button>
-  <button class="tab" onclick="show('daeho',this)">대호반점</button>
-  <button class="tab" onclick="show('igane',this)">이가네</button>
-  <button class="tab" onclick="show('bait',this)">낚시 미끼</button>
+<div class="tabs-wrap">
+  <div class="tabs-main" style="display:flex;">
+    <button class="tab on" onclick="showMain('cafe',this)">카페류</button>
+    <button class="tab" onclick="showMain('food',this)">식사류</button>
+    <button class="tab" onclick="showMain('bait',this)">낚시용품류</button>
+  </div>
+  <div class="tabs-sub on" id="sub-cafe">
+    <button class="tab on" onclick="showSub('bara',this,'cafe')">커피바라</button>
+    <button class="tab" onclick="showSub('iri',this,'cafe')">카페이리</button>
+  </div>
+  <div class="tabs-sub" id="sub-food">
+    <button class="tab on" onclick="showSub('daeho',this,'food')">대호반점</button>
+    <button class="tab" onclick="showSub('igane',this,'food')">이가네</button>
+  </div>
 </div>
 
 <!-- 커피바라 -->
@@ -475,6 +520,54 @@ function renderCart() {
 }
 
 function copyAndKakao() {
+  // 대량주문 체크
+  const keys = Object.keys(cart);
+  const cafeIds = ['bara', 'iri'];
+  const foodIds = ['daeho', 'igane'];
+
+  // 현재 담긴 메뉴가 어느 탭 소속인지 파악하기 위해 메뉴명 기반으로 체크
+  // 카페: 총 수량 4잔 이상
+  const cafeMenus = ['아메리카노','카페라떼','바닐라라떼','카페모카','마끼아또','1L 아메리카노','다방커피','에이드(커피바라)','요거트 스무디','차(레몬/자몽)','라떼','복숭아 아이스티','캐모마일','히비스커스','루이보스','얼그레이','유자차','생강차','에이드(카페이리)'];
+  let cafeQty = 0;
+  keys.forEach(k => {
+    const baseName = k.replace(/ 🔴| 🔵/g, '');
+    if (cafeMenus.some(m => baseName.startsWith(m))) cafeQty += cart[k].qty;
+  });
+
+  // 음식점: 금액 30000원 초과
+  const foodMenus = ['짜장','간짜장','고추짜장','삼선짜장','짬뽕','굴짬뽕','매운짬뽕','해물짬뽕','백짬뽕','우동','삼선우동','울면','짜장밥','짬뽕밥','굴탕밥','해물짬뽕밥','양송이덮밥','대호특밥','고추잡채밥','잡탕밥','유산슬밥','육개장','갈비탕','볶음밥','새우볶음밥','삼선볶음밥','오므라이스','잡채밥','마파두부밥','오징어덮밥','제육덮밥','탕수육','깐풍기','라조기','깐풍육','라조육','깐쇼새우','깐풍새우','양장피','팔보채','고추잡채','유산슬','해물누룽지탕','술국','군만두','물만두','이가네 갈비탕','불고기 물냉면','불고기 비빔냉면'];
+  let foodTotal = 0;
+  keys.forEach(k => {
+    if (foodMenus.some(m => k.startsWith(m))) foodTotal += cart[k].price * cart[k].qty;
+  });
+
+  let warnTitle = '';
+  if (cafeQty >= 4 && foodTotal > 30000) {
+    warnTitle = '카페 4잔 이상 + 음식 30,000원 초과';
+  } else if (cafeQty >= 4) {
+    warnTitle = '카페 음료 ' + cafeQty + '잔 주문';
+  } else if (foodTotal > 30000) {
+    warnTitle = '음식 ' + foodTotal.toLocaleString() + '원 주문';
+  }
+
+  if (warnTitle) {
+    document.getElementById('warnTitle').textContent = '📦 대량 주문 안내 (' + warnTitle + ')';
+    document.getElementById('warnModal').classList.add('show');
+  } else {
+    doOrder();
+  }
+}
+
+function closeWarnModal() {
+  document.getElementById('warnModal').classList.remove('show');
+}
+
+function proceedOrder() {
+  closeWarnModal();
+  doOrder();
+}
+
+function doOrder() {
   copyCart();
   setTimeout(() => {
     window.open('http://pf.kakao.com/_TUXxhX/chat', '_blank');
@@ -527,11 +620,38 @@ function toggleCart() {
   document.getElementById('cartTotal').textContent = total.toLocaleString() + '원 ' + (bar.classList.contains('open') ? '▼' : '▲');
 }
 
+function showMain(group, el) {
+  // 메인 탭 활성화
+  document.querySelectorAll('.tabs-main .tab').forEach(t => t.classList.remove('on'));
+  el.classList.add('on');
+  // 서브탭 표시
+  document.querySelectorAll('.tabs-sub').forEach(s => s.classList.remove('on'));
+  // 섹션 모두 숨기기
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('on'));
+  if (group === 'cafe') {
+    document.getElementById('sub-cafe').classList.add('on');
+    // 커피바라 기본 활성
+    document.getElementById('bara').classList.add('on');
+    document.querySelectorAll('#sub-cafe .tab').forEach((t,i) => t.classList.toggle('on', i===0));
+  } else if (group === 'food') {
+    document.getElementById('sub-food').classList.add('on');
+    document.getElementById('daeho').classList.add('on');
+    document.querySelectorAll('#sub-food .tab').forEach((t,i) => t.classList.toggle('on', i===0));
+  } else if (group === 'bait') {
+    document.getElementById('bait').classList.add('on');
+  }
+}
+
+function showSub(id, el, group) {
+  document.querySelectorAll(`#sub-${group} .tab`).forEach(t => t.classList.remove('on'));
+  el.classList.add('on');
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+}
+
 function show(id, el) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('on'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
   document.getElementById(id).classList.add('on');
-  el.classList.add('on');
 }
 
 function copyAccount() {
