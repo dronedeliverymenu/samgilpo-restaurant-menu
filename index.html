@@ -153,6 +153,29 @@
   .temp-cancel { width: 100%; margin-top: 10px; padding: 12px; border: none;
     background: #f5f4f0; border-radius: 10px; font-size: 14px; color: #999; cursor: pointer; }
 
+  /* 옵션 선택 모달 */
+  .opt-modal-bg {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    z-index: 350; display: flex; align-items: flex-end; justify-content: center;
+    opacity: 0; visibility: hidden; transition: opacity 0.2s, visibility 0.2s;
+  }
+  .opt-modal-bg.show { opacity: 1; visibility: visible; }
+  .opt-modal {
+    background: #fff; border-radius: 20px 20px 0 0;
+    padding: 1.5rem 1.25rem 2rem; width: 100%; max-width: 480px;
+    transform: translateY(100%); transition: transform 0.25s ease;
+  }
+  .opt-modal-bg.show .opt-modal { transform: translateY(0); }
+  .opt-modal h3 { font-size: 16px; font-weight: 700; color: #1a1a1a; margin-bottom: 4px; }
+  .opt-modal p { font-size: 13px; color: #aaa; margin-bottom: 1.25rem; }
+  .opt-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .opt-btn {
+    padding: 0.9rem; border: 2px solid #e0e0e0; border-radius: 12px;
+    font-size: 15px; font-weight: 600; cursor: pointer; background: #fff;
+    color: #1a1a1a; transition: all 0.15s; text-align: center;
+  }
+  .opt-btn:active { background: #1a1a2e; color: #fff; border-color: #1a1a2e; }
+
   /* 하단 장바구니 바 */
   .cart-bar {
     position: fixed; bottom: 0; left: 0; right: 0;
@@ -216,6 +239,15 @@
       <button class="warn-btn-cancel" onclick="closeWarnModal()">취소</button>
       <button class="warn-btn-ok" onclick="proceedOrder()">주문 진행</button>
     </div>
+  </div>
+</div>
+
+<div class="opt-modal-bg" id="optModal">
+  <div class="opt-modal">
+    <h3 id="optModalName">에이드</h3>
+    <p>옵션을 선택해주세요</p>
+    <div class="opt-btns" id="optBtns"></div>
+    <button class="temp-cancel" onclick="closeOptModal()">취소</button>
   </div>
 </div>
 
@@ -310,12 +342,12 @@
   <div class="item"><div class="item-info"><span class="item-name">다방커피</span></div><div class="item-price">4,000원</div><button class="add-btn" onclick="addItemWithTemp('다방커피',4000)">+</button></div>
 
   <div class="cat-label">에이드 · 스무디</div>
-  <div class="item"><div class="item-info"><span class="item-name">에이드</span><span class="item-sub">레몬 / 자몽 / 청포도</span></div><div class="item-price">5,500원</div><button class="add-btn" onclick="addItem('에이드(커피바라)',5500)">+</button></div>
-  <div class="item"><div class="item-info"><span class="item-name">요거트 스무디</span><span class="item-sub">플레인 / 딸기 / 망고 / 블루베리</span></div><div class="item-price">6,000원</div><button class="add-btn" onclick="addItem('요거트 스무디',6000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">에이드</span><span class="item-sub">레몬 / 자몽 / 청포도</span></div><div class="item-price">5,500원</div><button class="add-btn" onclick="addItemWithOption('에이드(커피바라)',5500)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">요거트 스무디</span><span class="item-sub">플레인 / 딸기 / 망고 / 블루베리</span></div><div class="item-price">6,000원</div><button class="add-btn" onclick="addItemWithOption('요거트 스무디',6000)">+</button></div>
 
   <div class="cat-label">차</div>
   <div class="item"><div class="item-info"><span class="item-name">차</span><span class="item-sub">레몬 / 자몽</span></div><div class="item-price">4,500원</div><button class="add-btn" onclick="addItemWithTemp('차(레몬/자몽)',4500)">+</button></div>
-  <div class="item"><div class="item-info"><span class="item-name">라떼</span><span class="item-sub">초코 / 쑥 / 밤</span></div><div class="item-price">6,000원</div><button class="add-btn" onclick="addItemWithTemp('라떼',6000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">라떼</span><span class="item-sub">초코 / 쑥 / 밤</span></div><div class="item-price">6,000원</div><button class="add-btn" onclick="addItemWithOption('라떼',6000)">+</button></div>
   <div class="item"><div class="item-info"><span class="item-name">복숭아 아이스티</span></div><div class="item-price">4,000원</div><button class="add-btn" onclick="addItem('복숭아 아이스티',4000)">+</button></div>
   <div class="item"><div class="item-info"><span class="item-name">캐모마일</span><span class="item-sub">H / I</span></div><div class="item-price">6,000원</div><button class="add-btn" onclick="addItemWithTemp('캐모마일',6000)">+</button></div>
   <div class="item"><div class="item-info"><span class="item-name">히비스커스</span><span class="item-sub">H / I</span></div><div class="item-price">6,000원</div><button class="add-btn" onclick="addItemWithTemp('히비스커스',6000)">+</button></div>
@@ -333,7 +365,7 @@
   <div class="cat-label">차 · 에이드</div>
   <div class="item"><div class="item-info"><span class="item-name">유자차</span><span class="item-sub">H / I</span></div><div class="item-price">5,000원</div><button class="add-btn" onclick="addItemWithTemp('유자차',5000)">+</button></div>
   <div class="item"><div class="item-info"><span class="item-name">생강차</span><span class="item-sub">H / I</span></div><div class="item-price">5,000원</div><button class="add-btn" onclick="addItemWithTemp('생강차',5000)">+</button></div>
-  <div class="item"><div class="item-info"><span class="item-name">에이드</span><span class="item-sub">자몽 / 레몬</span></div><div class="item-price">6,000원</div><button class="add-btn" onclick="addItem('에이드(카페이리)',6000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">에이드</span><span class="item-sub">자몽 / 레몬</span></div><div class="item-price">6,000원</div><button class="add-btn" onclick="addItemWithOption('에이드(카페이리)',6000)">+</button></div>
 </div>
 
 <!-- 대호반점 -->
@@ -492,6 +524,51 @@ function checkMixWarning(newItemName) {
 
 function closeMixModal() {
   document.getElementById('mixModal').classList.remove('show');
+}
+
+// 옵션 있는 메뉴 정의
+const menuOptions = {
+  '에이드(커피바라)': ['레몬', '자몽', '청포도'],
+  '요거트 스무디': ['플레인', '딸기', '망고', '블루베리'],
+  '라떼': ['초코', '쑥', '밤'],
+  '에이드(카페이리)': ['자몽', '레몬'],
+};
+// 온도 선택도 필요한 메뉴 (옵션 + 온도)
+const menuNeedsTemp = ['라떼'];
+
+let pendingOption = null; // 옵션 선택 대기
+
+function addItemWithOption(name, price) {
+  const opts = menuOptions[name];
+  if (!opts) { addItem(name, price); return; }
+  pendingOption = { name, price };
+  document.getElementById('optModalName').textContent = name.replace('(커피바라)','').replace('(카페이리)','');
+  const btns = opts.map(o =>
+    `<button class="opt-btn" onclick="selectOption('${o}')">${o}</button>`
+  ).join('');
+  document.getElementById('optBtns').innerHTML = btns;
+  document.getElementById('optModal').classList.add('show');
+}
+
+function selectOption(opt) {
+  if (!pendingOption) return;
+  const { name, price } = pendingOption;
+  pendingOption = null;
+  closeOptModal();
+  const fullName = name.replace('(커피바라)','').replace('(카페이리)','') + `(${opt})`;
+  if (menuNeedsTemp.includes(name)) {
+    pendingItem = { name: fullName, price };
+    document.getElementById('tempModalName').textContent = fullName;
+    document.getElementById('tempModalPrice').textContent = price.toLocaleString() + '원';
+    document.getElementById('tempModal').classList.add('show');
+  } else {
+    addItem(fullName, price);
+  }
+}
+
+function closeOptModal() {
+  document.getElementById('optModal').classList.remove('show');
+  pendingOption = null;
 }
 
 function addItemWithTemp(name, price) {
