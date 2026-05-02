@@ -196,6 +196,17 @@
 </head>
 <body>
 
+<div class="warn-modal-bg" id="mixModal">
+  <div class="warn-modal">
+    <div class="warn-icon">🚁</div>
+    <h3>다른 가게 메뉴 혼합 안내</h3>
+    <p id="mixModalMsg">여러 가게 음식을 주문하시면 조리 완료되는 대로 따로 배송되며, 배송비도 각각 1,000원씩 부과됩니다.</p>
+    <div class="warn-btns">
+      <button class="warn-btn-cancel" onclick="closeMixModal()">확인</button>
+    </div>
+  </div>
+</div>
+
 <div class="warn-modal-bg" id="warnModal">
   <div class="warn-modal">
     <div class="warn-icon">🚁</div>
@@ -315,9 +326,9 @@
 <!-- 카페이리 -->
 <div id="iri" class="section">
   <div class="cat-label">커피</div>
-  <div class="item"><div class="item-info"><span class="item-name">아메리카노</span><span class="item-sub">H / I</span></div><div class="item-price">5,000원</div><button class="add-btn" onclick="addItemWithTemp('아메리카노',5000)">+</button></div>
-  <div class="item"><div class="item-info"><span class="item-name">카페라떼</span><span class="item-sub">H / I</span></div><div class="item-price">5,500원</div><button class="add-btn" onclick="addItemWithTemp('카페라떼',5500)">+</button></div>
-  <div class="item"><div class="item-info"><span class="item-name">바닐라라떼</span><span class="item-sub">H / I</span></div><div class="item-price">6,000원</div><button class="add-btn" onclick="addItemWithTemp('바닐라라떼',6000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">아메리카노</span><span class="item-sub">H / I</span></div><div class="item-price">5,000원</div><button class="add-btn" onclick="addItemWithTemp('아메리카노(이리)',5000)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">카페라떼</span><span class="item-sub">H / I</span></div><div class="item-price">5,500원</div><button class="add-btn" onclick="addItemWithTemp('카페라떼(이리)',5500)">+</button></div>
+  <div class="item"><div class="item-info"><span class="item-name">바닐라라떼</span><span class="item-sub">H / I</span></div><div class="item-price">6,000원</div><button class="add-btn" onclick="addItemWithTemp('바닐라라떼(이리)',6000)">+</button></div>
 
   <div class="cat-label">차 · 에이드</div>
   <div class="item"><div class="item-info"><span class="item-name">유자차</span><span class="item-sub">H / I</span></div><div class="item-price">5,000원</div><button class="add-btn" onclick="addItemWithTemp('유자차',5000)">+</button></div>
@@ -425,7 +436,53 @@
 <script>
 let cart = {};
 let selectedZoodae = '';
-let pendingItem = null; // 온도 선택 대기중인 메뉴
+let pendingItem = null;
+let mixWarned = false; // 혼합 경고 최초 1회 여부
+
+const cafeMenuNames = ['아메리카노','카페라떼','바닐라라떼','카페모카','마끼아또','1L 아메리카노','다방커피','에이드(커피바라)','요거트 스무디','차(레몬/자몽)','라떼','복숭아 아이스티','캐모마일','히비스커스','루이보스','얼그레이'];
+const iriMenuNames = ['아메리카노(이리)','카페라떼(이리)','바닐라라떼(이리)','유자차','생강차','에이드(카페이리)'];
+const foodMenuNames = ['짜장','간짜장','고추짜장','삼선짜장','짬뽕','굴짬뽕','매운짬뽕','해물짬뽕','백짬뽕','우동','삼선우동','울면','짜장밥','짬뽕밥','굴탕밥','해물짬뽕밥','양송이덮밥','대호특밥','고추잡채밥','잡탕밥','유산슬밥','육개장','갈비탕','볶음밥','새우볶음밥','삼선볶음밥','오므라이스','잡채밥','마파두부밥','오징어덮밥','제육덮밥','탕수육','깐풍기','라조기','깐풍육','라조육','깐쇼새우','깐풍새우','양장피','팔보채','고추잡채','유산슬','해물누룽지탕','술국','군만두','물만두'];
+const iganeMenuNames = ['이가네 갈비탕','불고기 물냉면','불고기 비빔냉면'];
+
+function getItemStore(name) {
+  const base = name.replace(/ 🔴| 🔵/g, '');
+  if (iriMenuNames.some(m => base.startsWith(m))) return 'iri';
+  if (cafeMenuNames.some(m => base.startsWith(m))) return 'bara';
+  if (iganeMenuNames.some(m => base.startsWith(m))) return 'igane';
+  if (foodMenuNames.some(m => base.startsWith(m))) return 'daeho';
+  return 'other';
+}
+
+function getItemType(name) {
+  const store = getItemStore(name);
+  if (store === 'bara' || store === 'iri') return 'cafe';
+  if (store === 'daeho' || store === 'igane') return 'food';
+  return 'other';
+}
+
+function checkMixWarning(newItemName) {
+  if (mixWarned) return;
+  const newStore = getItemStore(newItemName);
+  if (newStore === 'other') return;
+  const keys = Object.keys(cart);
+  const hasDifferentStore = keys.some(k => getItemStore(k) !== newStore && getItemStore(k) !== 'other');
+  if (hasDifferentStore) {
+    mixWarned = true;
+    const newType = getItemType(newItemName);
+    const existingTypes = keys.map(k => getItemType(k)).filter(t => t !== 'other');
+    const hasDifferentType = existingTypes.some(t => t !== newType);
+    if (hasDifferentType) {
+      document.getElementById('mixModalMsg').textContent = '카페와 식사류를 함께 주문하시면 조리 완료되는 대로 따로따로 배송되며, 배송비도 각각 1,000원씩 부과됩니다.';
+    } else {
+      document.getElementById('mixModalMsg').textContent = '여러 가게 음식을 주문하시면 조리 완료되는 대로 따로 배송되며, 배송비도 각각 1,000원씩 부과됩니다.';
+    }
+    document.getElementById('mixModal').classList.add('show');
+  }
+}
+
+function closeMixModal() {
+  document.getElementById('mixModal').classList.remove('show');
+}
 
 function addItemWithTemp(name, price) {
   pendingItem = { name, price };
@@ -461,6 +518,8 @@ function changeZoodae() {
 }
 
 function addItem(name, price) {
+  const type = getItemType(name);
+  checkMixWarning(name);
   if (cart[name]) {
     cart[name].qty += 1;
   } else {
@@ -608,6 +667,7 @@ function copyCart() {
 
 function clearCart() {
   cart = {};
+  mixWarned = false;
   renderCart();
 }
 
