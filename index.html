@@ -259,7 +259,7 @@
     <button onclick="changeZoodae()" id="zoodaeChangeBtn" style="display:none; background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.5); border-radius:6px; color:#fff; font-size:12px; padding:4px 10px; cursor:pointer;">좌대 변경</button>
   </div>
   <p class="hero-note">
-    배송비 1,000원 · 주류 배송 불가<br>
+    가게별 배송비 1,000원 · 주류 배송 불가<br>
     메뉴판 외 품목 배달 주문은 전화 문의
   </p>
   <div style="display:flex; gap:8px; flex-wrap:wrap;">
@@ -535,11 +535,19 @@ function changeQty(name, delta) {
   renderCart();
 }
 
+function getStoreCount() {
+  const keys = Object.keys(cart);
+  const stores = new Set(keys.map(k => getItemStore(k)).filter(s => s !== 'other'));
+  return Math.max(stores.size, 1);
+}
+
 function renderCart() {
   const keys = Object.keys(cart);
   const totalQty = keys.reduce((s, k) => s + cart[k].qty, 0);
   const itemTotal = keys.reduce((s, k) => s + cart[k].price * cart[k].qty, 0);
-  const totalPrice = totalQty > 0 ? itemTotal + 1000 : 0;
+  const storeCount = totalQty > 0 ? getStoreCount() : 0;
+  const deliveryFee = storeCount * 1000;
+  const totalPrice = totalQty > 0 ? itemTotal + deliveryFee : 0;
 
   document.getElementById('cartCount').textContent = `🛒 담은 메뉴 ${totalQty}개`;
   document.getElementById('cartTotal').textContent = totalPrice.toLocaleString() + '원 ' + (document.getElementById('cartBar').classList.contains('open') ? '▼' : '▲');
@@ -566,9 +574,9 @@ function renderCart() {
       </div>`;
   });
   html += `<div class="cart-item" style="opacity:0.6;">
-        <span class="cart-item-name">배송비</span>
+        <span class="cart-item-name">배송비 ${deliveryFee.toLocaleString()}원 (${storeCount}가게 × 1,000원)</span>
         <div class="cart-item-qty"></div>
-        <span class="cart-item-price">1,000원</span>
+        <span class="cart-item-price"></span>
       </div>`;
   html += `
     <div style="display:flex; gap:8px; margin-top:8px;">
@@ -586,7 +594,7 @@ function copyAndKakao() {
 
   // 현재 담긴 메뉴가 어느 탭 소속인지 파악하기 위해 메뉴명 기반으로 체크
   // 카페: 총 수량 4잔 이상
-  const cafeMenus = ['아메리카노','카페라떼','바닐라라떼','카페모카','마끼아또','1L 아메리카노','다방커피','에이드(커피바라)','요거트 스무디','차(레몬/자몽)','라떼','복숭아 아이스티','캐모마일','히비스커스','루이보스','얼그레이','유자차','생강차','에이드(카페이리)'];
+  const cafeMenus = ['아메리카노','카페라떼','바닐라라떼','카페모카','마끼아또','1L 아메리카노','다방커피','에이드(커피바라)','요거트 스무디','차(레몬/자몽)','라떼','복숭아 아이스티','캐모마일','히비스커스','루이보스','얼그레이','아메리카노(이리)','카페라떼(이리)','바닐라라떼(이리)','유자차','생강차','에이드(카페이리)'];
   let cafeQty = 0;
   keys.forEach(k => {
     const baseName = k.replace(/ 🔴| 🔵/g, '');
@@ -637,7 +645,9 @@ function copyCart() {
   const keys = Object.keys(cart);
   if (keys.length === 0) return;
   const itemTotal = keys.reduce((s,k) => s + cart[k].price * cart[k].qty, 0);
-  const total = itemTotal + 1000;
+  const storeCount = getStoreCount();
+  const deliveryFee = storeCount * 1000;
+  const total = itemTotal + deliveryFee;
   let text = '📋 주문 내역\n';
   if (selectedZoodae) text += `📍 ${selectedZoodae}\n`;
   text += '─────────────\n';
@@ -646,7 +656,7 @@ function copyCart() {
     text += `${name} x${qty}  ${(price*qty).toLocaleString()}원\n`;
   });
   text += '─────────────\n';
-  text += `배송비  1,000원\n`;
+  text += `배송비 ${deliveryFee.toLocaleString()}원 (${storeCount}가게 × 1,000원)\n`;
   text += `합계  ${total.toLocaleString()}원`;
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(text).then(() => {
@@ -676,7 +686,8 @@ function toggleCart() {
   bar.classList.toggle('open');
   const keys2 = Object.keys(cart);
   const itemTotal2 = keys2.reduce((s,k)=>s+cart[k].price*cart[k].qty,0);
-  const total = keys2.length > 0 ? itemTotal2 + 1000 : 0;
+  const storeCount2 = keys2.length > 0 ? getStoreCount() : 0;
+  const total = keys2.length > 0 ? itemTotal2 + storeCount2 * 1000 : 0;
   document.getElementById('cartTotal').textContent = total.toLocaleString() + '원 ' + (bar.classList.contains('open') ? '▼' : '▲');
 }
 
